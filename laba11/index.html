@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <title>Список дел</title>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
+
+    <script type="text/babel">
+       class TodoApp extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = {
+                    tasks: [],
+                    taskInput: "",
+                    editingIndex: null,
+                };
+            }
+
+            addTask = () => {
+                const { taskInput, tasks, editingIndex } = this.state;
+                if (taskInput.trim() !== "") {
+                    const newTask = { name: taskInput, completed: false, deleted: false };
+                    const updatedTasks = editingIndex !== null ? [...tasks] : [...tasks, newTask];
+
+                    if (editingIndex !== null) {
+                        updatedTasks[editingIndex].name = taskInput;
+                    }
+
+                    this.setState({
+                        tasks: updatedTasks,
+                        taskInput: "",
+                        editingIndex: null,
+                    });
+                }
+            };
+
+            handleKeyPress = (event) => {
+                if (event.key === "Enter") {
+                    this.addTask();
+                }
+            };
+
+            deleteTask = (index) => {
+                const { tasks } = this.state;
+                const updatedTasks = [...tasks];
+                if (updatedTasks[index].completed) {
+                    updatedTasks[index].deleted = true;
+                } else {
+                    updatedTasks[index].completed = true;
+                }
+                this.setState({ tasks: updatedTasks });
+            };
+
+            displayTasks = () => {
+                const { tasks } = this.state;
+                const filteredTasks = tasks.filter((task) => !task.deleted);
+
+                return filteredTasks.map((task, index) => (
+                    <li key={index}>
+                        <label className="custom-checkbox" style={{ textDecoration: task.completed ? 'line-through' : '' }}>
+                            <input type="checkbox" className="checkbox" checked={task.completed} onChange={() => this.toggleComplete(index)} />
+                            <span className="checkbox-span">&#10003;</span><span>{task.name}</span>
+                        </label>
+                        <button className="edit-btn" onClick={() => this.editTask(index)}>&#9998;</button>
+                        <button className="delete-btn" onClick={() => this.deleteTask(index)}>&#10007;</button>
+                    </li>
+                ));
+            };
+
+            toggleComplete = (index) => {
+                const { tasks } = this.state;
+                const updatedTasks = [...tasks];
+                updatedTasks[index].completed = !updatedTasks[index].completed;
+                this.setState({ tasks: updatedTasks });
+            };
+
+            editTask = (index) => {
+                const { tasks } = this.state;
+                const taskInput = tasks[index].name;
+                this.setState({ taskInput, editingIndex: index });
+            };
+
+            render() {
+                const { taskInput } = this.state;
+
+                return (
+                    <div className="main">
+                        <div className="input-form">
+                            <h1><p>Список дел</p></h1>
+                            <input
+                                type="text"
+                                className="input-text"
+                                value={taskInput}
+                                placeholder="Новый элемент списка"
+                                onKeyPress={this.handleKeyPress}
+                                onChange={(e) => this.setState({ taskInput: e.target.value })}
+                            />
+                            <button className="save-btn" onClick={this.addTask}>Сохранить</button>
+                        </div>
+
+                        <ul id="taskList">
+                            {this.displayTasks()}
+                        </ul>
+                    </div>
+                );
+            }
+        }
+
+        ReactDOM.render(<TodoApp />, document.getElementById('root'));
+
+    </script>
+</body>
+</html>
